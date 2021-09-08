@@ -3257,6 +3257,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@polkadot/apps-files@workspace:packages/apps-files":
+  version: 0.0.0-use.local
+  resolution: "@polkadot/apps-files@workspace:packages/apps-files"
+  dependencies:
+    "@babel/runtime": ^7.13.10
+    "@polkadot/react-components": ^0.85.2-15
+    "@polkadot/react-params": ^0.85.2-15
+  languageName: unknown
+  linkType: soft
+
 "@polkadot/apps-ipfs@workspace:packages/apps-ipfs":
   version: 0.0.0-use.local
   resolution: "@polkadot/apps-ipfs@workspace:packages/apps-ipfs"

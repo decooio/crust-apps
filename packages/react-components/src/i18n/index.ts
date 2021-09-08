@@ -42,6 +42,7 @@ i18next
       'apps-config',
       'apps-electron',
       'apps-routing',
+      'apps-files',
       'app-accounts',
       'app-claims',
       'app-contracts',

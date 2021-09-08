@@ -24,6 +24,7 @@ import merchants from './merchants';
 import parachains from './parachains';
 import poll from './poll';
 import rpc from './rpc';
+import files from './files';
 import settings from './settings';
 import settlements from './settlements';
 import signing from './signing';
@@ -68,6 +69,7 @@ export default function create (t: TFunction): Routes {
     signing(t),
     sudo(t),
     js(t),
+    files(t),
     settings(t),
     merchants(t),
     settlements(t),
