@@ -6,10 +6,15 @@ import store from 'store';
 
 import { Metamask } from '@polkadot/app-files/metamask/types';
 import useMetamask from '@polkadot/app-files/metamask/useMetamask';
+// import { NearLoginUser } from '@polkadot/app-files/near/types';
 import { web3FromSource } from '@polkadot/extension-dapp';
 import { useAccounts } from '@polkadot/react-hooks';
 import { keyring } from '@polkadot/ui-keyring';
 import { isFunction, stringToHex, stringToU8a, u8aToHex } from '@polkadot/util';
+
+import * as nearAPI from "near-api-js";
+const { keyStores } = require("near-api-js");
+import { getNearConfig } from './near/config';
 
 import { SaveFile } from './types';
 
@@ -220,4 +225,100 @@ export function useLoginUser (): WrapLoginUser {
     metamask,
     ...uSign
   }), [account, isLoadUser, setLoginUser, logout, uSign, metamask]);
+}
+
+export interface NearLoginUser {
+  walletAccount?: nearAPI.WalletConnection,
+  keyPair?: nearAPI.KeyPair,
+}
+
+export interface NearLoginUserWrapper extends NearLoginUser {
+  // walletAccount?: nearAPI.WalletConnection,
+  // keyPair?: nearAPI.KeyPair,
+
+  // isLoggedIn?: boolean,
+  // accountId?: string, // This is account name like 'crust.near'
+  // pubKey?: string,
+
+  signedIn?: boolean,
+  pubKey?: string,
+  onSignedIn: (walletAccount: nearAPI.WalletConnection) => void,
+  signOut: () => void,
+  sign: () => Promise<string>
+}
+
+
+export function useNearLoginUser(): NearLoginUserWrapper{
+  console.log('useNearLoginUser...');
+
+  const nearConfig = getNearConfig();
+  const [nearLoginUser, setNearLoginUser] = useState<NearLoginUser>({});
+  const [signedIn, setSignedIn] = useState<boolean>(false);
+  const [pubKey, setPubKey] = useState<string>();
+
+  useEffect(() => {
+    (async function() {
+      console.log('useNearLoginUser, useEffect');
+      const near = await nearAPI.connect(Object.assign({ deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() } }, nearConfig));
+      const walletAccount = new nearAPI.WalletAccount(near, null);
+      setNearLoginUser({
+        walletAccount
+      });
+      console.log('useNearLoginUser, useEffect, setNearLoginUser', nearLoginUser);
+    })();
+  }, []);
+
+  const onSignedIn = useCallback(async(walletAccount: nearAPI.WalletConnection) => {
+    const keyStore = new keyStores.BrowserLocalStorageKeyStore();
+    const keyPair = await keyStore.getKey(nearConfig.networkId, walletAccount.getAccountId());
+    const _pubkey = keyPair.getPublicKey().toString().substr(8);
+    setNearLoginUser({
+      walletAccount,
+      keyPair
+    });
+    setSignedIn(true);
+    setPubKey(_pubkey);
+  }, []);
+
+  const signOut = useCallback(() => {
+    if (!nearLoginUser || !nearLoginUser.walletAccount || !nearLoginUser.walletAccount.isSignedIn()) {
+      return;
+    }
+    nearLoginUser.walletAccount.signOut();
+    setNearLoginUser({
+      walletAccount: nearLoginUser.walletAccount
+    });
+    setSignedIn(false);
+    setPubKey(undefined);
+  }, [nearLoginUser, signedIn, pubKey]);
+
+  const sign = useCallback(function (): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      try {
+        if (!nearLoginUser || !nearLoginUser.walletAccount || !nearLoginUser.walletAccount.isSignedIn()) {
+          reject('Unsigned In');
+        }
+
+        const keyPair = nearLoginUser.keyPair!;
+        const pubkey = keyPair.getPublicKey().toString().substr(8);
+        console.log("Pubkey: ", pubkey)
+        const msg = Buffer.from(pubkey!);
+        const { signature } = keyPair.sign(msg);
+        const hexSignature = Buffer.from(signature).toString('hex');
+        resolve(hexSignature);
+      }
+      catch (e) {
+        reject(e);
+      }
+    });
+  }, [nearLoginUser, signedIn, pubKey]);
+
+  return useMemo(() => ({
+    ...nearLoginUser,
+    signedIn,
+    pubKey,
+    onSignedIn,
+    signOut,
+    sign
+  }), [nearLoginUser, signedIn, pubKey])
 }

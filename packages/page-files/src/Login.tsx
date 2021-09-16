@@ -1,23 +1,26 @@
 // Copyright 2017-2021 @polkadot/app-files authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useContext, useState, useEffect } from 'react';
 import styled from 'styled-components';
 
-import { WrapLoginUser } from '@polkadot/app-files/hooks';
+import { WrapLoginUser, NearLoginUserWrapper } from '@polkadot/app-files/hooks';
 import { externalLogos } from '@polkadot/apps-config';
 import { InputAddress, StatusContext } from '@polkadot/react-components';
 import { useAccounts } from '@polkadot/react-hooks';
 
+import * as nearAPI from "near-api-js";
+import { getNearConfig } from './near/config';
 import { Button } from './btns';
 import { useTranslation } from './translate';
 
 export interface Props {
   className?: string
   user: WrapLoginUser,
+  nearUser: NearLoginUserWrapper
 }
 
-function Login ({ className, user }: Props) {
+function Login ({ className, user, nearUser }: Props) {
   const { t } = useTranslation();
   const [showCrust, setShowCrust] = useState(false);
   const _onToggleWalletCrust = useCallback(() => setShowCrust(!showCrust), [showCrust]);
@@ -69,6 +72,29 @@ function Login ({ className, user }: Props) {
     }
   }, [user, queueAction, t]);
 
+  const _onClickNear = useCallback(async() => {
+    console.log('_onClickNear', nearUser);
+    const nearConfig = getNearConfig();
+    nearUser.walletAccount?.requestSignIn(
+      nearConfig.contractName,
+      'Crust Files'
+    );
+  }, [nearUser, queueAction, t]);
+
+  useEffect(() => {
+    (async function() {
+      console.log('Login.tsx, useEffect...');
+
+      const nearConfig = getNearConfig();
+      const near = await nearAPI.connect(Object.assign({ deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() } }, nearConfig));
+      const walletAccount = new nearAPI.WalletAccount(near, null);
+      if (walletAccount.isSignedIn()) {
+        nearUser.onSignedIn(walletAccount);
+      }
+    })();
+  }, [nearUser]);
+
+
   return (
     <div className={className}>
       <div className='loginPanel'>
@@ -109,6 +135,12 @@ function Login ({ className, user }: Props) {
                   onClick={_onClickMetamask}
                   src={externalLogos.walletMetamask as string}
                 />
+                <img
+                  className='walletIcon'
+                  onClick={_onClickNear}
+                  src={externalLogos.walletNear as string}
+                />
+
               </div>
             </>
           }

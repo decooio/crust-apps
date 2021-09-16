@@ -4,12 +4,13 @@
 import React, { useCallback } from 'react';
 import styled from 'styled-components';
 
-import { WrapLoginUser } from '@polkadot/app-files/hooks';
+import { WrapLoginUser, NearLoginUserWrapper } from '@polkadot/app-files/hooks';
 import { Icon } from '@polkadot/react-components';
 
 import { useTranslation } from './translate';
 
 export interface Props {
+  nearUser: NearLoginUserWrapper,
   user: WrapLoginUser,
   className?: string,
 }
@@ -20,7 +21,7 @@ function shortAccount (account: string) {
   return `${account.substr(0, 4)}...${account.substr(account.length - 4, 4)}`;
 }
 
-function User ({ className, user }: Props) {
+function User ({ className, user, nearUser }: Props) {
   const { i18n, t } = useTranslation();
   const devLink = i18n.language === 'zh-CN'
     ? 'https://wiki.crust.network/docs/zh-CN/buildGettingStarted'
@@ -28,6 +29,8 @@ function User ({ className, user }: Props) {
   const onClickDev = useCallback(() => {
     window.open(devLink, '_blank');
   }, [devLink]);
+
+  console.log('User', user, nearUser);
 
   return (
     <div className={className}>
@@ -44,6 +47,19 @@ function User ({ className, user }: Props) {
             <div
               className='option'
               onClick={user.logout}>
+              <Icon icon='sign-out-alt'/> {t('Logout')}
+            </div>
+          </div>
+        </div>
+      }
+      {
+        (!user.account && nearUser.signedIn) &&
+        <div className='item'>
+          {shortAccount(nearUser.pubKey || '')} <Icon icon='caret-down'/>
+          <div className='options'>
+            <div
+              className='option'
+              onClick={nearUser.signOut}>
               <Icon icon='sign-out-alt'/> {t('Logout')}
             </div>
           </div>

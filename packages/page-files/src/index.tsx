@@ -6,7 +6,7 @@ import type { KeyedEvent } from '@polkadot/react-query/types';
 import React, { useRef } from 'react';
 
 import CrustFiles from '@polkadot/app-files/CrustFiles';
-import { useLoginUser } from '@polkadot/app-files/hooks';
+import { useLoginUser, useNearLoginUser } from '@polkadot/app-files/hooks';
 import Login from '@polkadot/app-files/Login';
 import User from '@polkadot/app-files/User';
 import { Spinner, Tabs } from '@polkadot/react-components';
@@ -28,6 +28,9 @@ function FilesApp ({ basePath, className }: Props): React.ReactElement<Props> {
       text: t<string>('Your Files')
     }
   ]);
+  const nearUser = useNearLoginUser();
+  const isNearUserSignedIn = nearUser.signedIn || false;
+
   const wUser = useLoginUser();
   const isLoad = wUser.isLoad;
 
@@ -38,9 +41,9 @@ function FilesApp ({ basePath, className }: Props): React.ReactElement<Props> {
         items={itemsRef.current}
       />
       {wUser.isLoad && <Spinner/>}
-      {!isLoad && wUser.account && <CrustFiles user={wUser}/>}
-      {!isLoad && !wUser.account && <Login user={wUser}/>}
-      {!isLoad && wUser.account && <User user={wUser}/>}
+      {!isLoad && (wUser.account || isNearUserSignedIn) && <CrustFiles user={wUser}/>}
+      {!isLoad && (!wUser.account && !isNearUserSignedIn) && <Login user={wUser} nearUser={nearUser}/>}
+      {!isLoad && (wUser.account || isNearUserSignedIn) && <User user={wUser} nearUser={nearUser}/>}
     </main>
   );
 }
