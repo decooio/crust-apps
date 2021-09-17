@@ -4,7 +4,7 @@
 import axios, { CancelTokenSource } from 'axios';
 import React, { useCallback, useMemo, useState } from 'react';
 
-import { WrapLoginUser } from '@polkadot/app-files/hooks';
+import { NearLoginUserWrapper, WrapLoginUser } from '@polkadot/app-files/hooks';
 import { createAuthIpfsEndpoints } from '@polkadot/apps-config';
 import { Button, Dropdown, Label, Modal, Password } from '@polkadot/react-components';
 
@@ -17,6 +17,7 @@ export interface Props {
   onClose?: () => void,
   onSuccess?: (res: SaveFile) => void,
   user: WrapLoginUser,
+  nearUser: NearLoginUserWrapper
 }
 
 const NOOP = (): void => undefined;
@@ -39,7 +40,7 @@ function ShowFile (p: { file: DirFile | File }) {
 }
 
 function UploadModal (p: Props): React.ReactElement<Props> {
-  const { file, onClose = NOOP, onSuccess = NOOP, user } = p;
+  const { file, onClose = NOOP, onSuccess = NOOP, user, nearUser } = p;
   const { t } = useTranslation();
   const endpoints = useMemo(
     () => createAuthIpfsEndpoints(t)
@@ -86,10 +87,12 @@ function UploadModal (p: Props): React.ReactElement<Props> {
     onClose();
   }, [cancelUp, onClose]);
 
+  const useNear = (!user.account) && nearUser.signedIn;
+
   const _onClickUp = useCallback(async () => {
     setError('');
 
-    if (!user.account || !user.sign) {
+    if ((!useNear) && (!user.account || !user.sign)) {
       return;
     }
 
@@ -97,9 +100,23 @@ function UploadModal (p: Props): React.ReactElement<Props> {
       // 1: sign
       setBusy(true);
 
-      const prefix = user.wallet === 'metamask' ? 'eth' : 'substrate';
-      const signature = await user.sign(`${user.account}`, password);
-      const perSignData = `${prefix}-${user.account}:${signature}`;
+      let prefix, address, signature;
+
+      if (!useNear) {
+        prefix = user.wallet === 'metamask' ? 'eth' : 'substrate';
+        address = user.account;
+        // eslint-disable-next-line
+        // @ts-ignore
+        // eslint-disable-next-line
+        signature = await user.sign(`${address}`, password);
+      } else {
+        prefix = 'sol'; // TODO: change to 'near'
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        address = nearUser.pubKey!;
+        signature = await nearUser.sign(address);
+      }
+
+      const perSignData = `${prefix}-${address}:${signature}`;
       const base64Signature = window.btoa(perSignData);
       const AuthBasic = `Basic ${base64Signature}`;
       const AuthBearer = `Bearer ${base64Signature}`;
@@ -173,7 +190,7 @@ function UploadModal (p: Props): React.ReactElement<Props> {
       console.error(e);
       setError((e as Error).message);
     }
-  }, [user, file, password, currentPinEndpoint, currentEndpoint, onSuccess]);
+  }, [user, nearUser, useNear, file, password, currentPinEndpoint, currentEndpoint, onSuccess]);
 
   const _onChangeGateway = useCallback((value: string) => {
     const find = endpoints.find((item) => item.value === value);
@@ -229,7 +246,7 @@ function UploadModal (p: Props): React.ReactElement<Props> {
         </Modal.Columns>
         <Modal.Columns>
           {
-            !upState.up && user.isLocked &&
+            !upState.up && (!useNear && user.isLocked) &&
             <Password
               help={t<string>('The account\'s password specified at the creation of this account.')}
               isError={false}

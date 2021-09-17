@@ -5,7 +5,7 @@ import FileSaver from 'file-saver';
 import React, { useCallback, useContext, useRef, useState } from 'react';
 import styled from 'styled-components';
 
-import { useFiles, WrapLoginUser } from '@polkadot/app-files/hooks';
+import { NearLoginUserWrapper, useFiles, WrapLoginUser } from '@polkadot/app-files/hooks';
 import UploadModal from '@polkadot/app-files/UploadModal';
 import { Badge, Button, CopyButton, Icon, StatusContext, Table } from '@polkadot/react-components';
 import { ActionStatusBase, QueueProps } from '@polkadot/react-components/Status/types';
@@ -54,11 +54,12 @@ type FunInputFile = (e: React.ChangeEvent<HTMLInputElement>) => void
 export interface Props {
   className?: string,
   user: WrapLoginUser,
+  nearUser: NearLoginUserWrapper
 }
 
 const Noop = (): void => undefined;
 
-function CrustFiles ({ className, user }: Props): React.ReactElement<Props> {
+function CrustFiles ({ className, nearUser, user }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { queueAction } = useContext<QueueProps>(StatusContext);
   const [showUpMode, setShowUpMode] = useState(false);
@@ -209,6 +210,7 @@ function CrustFiles ({ className, user }: Props): React.ReactElement<Props> {
       file && showUpMode &&
       <UploadModal
         file={file}
+        nearUser={nearUser}
         onClose={_onClose}
         onSuccess={_onSuccess}
         user={user}

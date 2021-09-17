@@ -4,7 +4,7 @@
 import React, { useCallback } from 'react';
 import styled from 'styled-components';
 
-import { WrapLoginUser, NearLoginUserWrapper } from '@polkadot/app-files/hooks';
+import { NearLoginUserWrapper, WrapLoginUser } from '@polkadot/app-files/hooks';
 import { Icon } from '@polkadot/react-components';
 
 import { useTranslation } from './translate';
@@ -21,7 +21,7 @@ function shortAccount (account: string) {
   return `${account.substr(0, 4)}...${account.substr(account.length - 4, 4)}`;
 }
 
-function User ({ className, user, nearUser }: Props) {
+function User ({ className, nearUser, user }: Props) {
   const { i18n, t } = useTranslation();
   const devLink = i18n.language === 'zh-CN'
     ? 'https://wiki.crust.network/docs/zh-CN/buildGettingStarted'

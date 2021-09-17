@@ -41,9 +41,12 @@ function FilesApp ({ basePath, className }: Props): React.ReactElement<Props> {
         items={itemsRef.current}
       />
       {wUser.isLoad && <Spinner/>}
-      {!isLoad && (wUser.account || isNearUserSignedIn) && <CrustFiles user={wUser}/>}
-      {!isLoad && (!wUser.account && !isNearUserSignedIn) && <Login user={wUser} nearUser={nearUser}/>}
-      {!isLoad && (wUser.account || isNearUserSignedIn) && <User user={wUser} nearUser={nearUser}/>}
+      {!isLoad && (wUser.account || isNearUserSignedIn) && <CrustFiles nearUser={nearUser}
+        user={wUser}/>}
+      {!isLoad && (!wUser.account && !isNearUserSignedIn) && <Login nearUser={nearUser}
+        user={wUser}/>}
+      {!isLoad && (wUser.account || isNearUserSignedIn) && <User nearUser={nearUser}
+        user={wUser}/>}
     </main>
   );
 }

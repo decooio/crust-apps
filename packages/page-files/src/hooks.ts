@@ -1,21 +1,18 @@
 // Copyright 2017-2021 @polkadot/app-files authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import * as nearAPI from 'near-api-js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import store from 'store';
 
 import { Metamask } from '@polkadot/app-files/metamask/types';
 import useMetamask from '@polkadot/app-files/metamask/useMetamask';
-// import { NearLoginUser } from '@polkadot/app-files/near/types';
 import { web3FromSource } from '@polkadot/extension-dapp';
 import { useAccounts } from '@polkadot/react-hooks';
 import { keyring } from '@polkadot/ui-keyring';
 import { isFunction, stringToHex, stringToU8a, u8aToHex } from '@polkadot/util';
 
-import * as nearAPI from "near-api-js";
-const { keyStores } = require("near-api-js");
 import { getNearConfig } from './near/config';
-
 import { SaveFile } from './types';
 
 export interface Files {
@@ -233,22 +230,14 @@ export interface NearLoginUser {
 }
 
 export interface NearLoginUserWrapper extends NearLoginUser {
-  // walletAccount?: nearAPI.WalletConnection,
-  // keyPair?: nearAPI.KeyPair,
-
-  // isLoggedIn?: boolean,
-  // accountId?: string, // This is account name like 'crust.near'
-  // pubKey?: string,
-
   signedIn?: boolean,
   pubKey?: string,
   onSignedIn: (walletAccount: nearAPI.WalletConnection) => void,
   signOut: () => void,
-  sign: () => Promise<string>
+  sign: (data: string) => Promise<string>
 }
 
-
-export function useNearLoginUser(): NearLoginUserWrapper{
+export function useNearLoginUser (): NearLoginUserWrapper {
   console.log('useNearLoginUser...');
 
   const nearConfig = getNearConfig();
@@ -257,61 +246,66 @@ export function useNearLoginUser(): NearLoginUserWrapper{
   const [pubKey, setPubKey] = useState<string>();
 
   useEffect(() => {
-    (async function() {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    (async function () {
       console.log('useNearLoginUser, useEffect');
       const near = await nearAPI.connect(Object.assign({ deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() } }, nearConfig));
       const walletAccount = new nearAPI.WalletAccount(near, null);
+
       setNearLoginUser({
         walletAccount
       });
       console.log('useNearLoginUser, useEffect, setNearLoginUser', nearLoginUser);
     })();
-  }, []);
+  }, [nearConfig, nearLoginUser]);
 
-  const onSignedIn = useCallback(async(walletAccount: nearAPI.WalletConnection) => {
-    const keyStore = new keyStores.BrowserLocalStorageKeyStore();
-    const keyPair = await keyStore.getKey(nearConfig.networkId, walletAccount.getAccountId());
-    const _pubkey = keyPair.getPublicKey().toString().substr(8);
+  const onSignedIn = useCallback(async (walletAccount: nearAPI.WalletConnection) => {
+    // eslint-disable-next-line
+    const keyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore();
+    const keyPair: nearAPI.KeyPair = await keyStore.getKey(nearConfig.networkId, walletAccount.getAccountId());
+    const _pubkey: string = keyPair.getPublicKey().toString().substr(8);
+
     setNearLoginUser({
       walletAccount,
+      // eslint-disable-next-line
       keyPair
     });
     setSignedIn(true);
     setPubKey(_pubkey);
-  }, []);
+  }, [nearConfig.networkId]);
 
   const signOut = useCallback(() => {
     if (!nearLoginUser || !nearLoginUser.walletAccount || !nearLoginUser.walletAccount.isSignedIn()) {
       return;
     }
+
     nearLoginUser.walletAccount.signOut();
     setNearLoginUser({
       walletAccount: nearLoginUser.walletAccount
     });
     setSignedIn(false);
     setPubKey(undefined);
-  }, [nearLoginUser, signedIn, pubKey]);
+  }, [nearLoginUser]);
 
-  const sign = useCallback(function (): Promise<string> {
+  const sign = useCallback(function (data: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       try {
         if (!nearLoginUser || !nearLoginUser.walletAccount || !nearLoginUser.walletAccount.isSignedIn()) {
-          reject('Unsigned In');
+          reject(new Error('Unsigned In'));
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const keyPair = nearLoginUser.keyPair!;
-        const pubkey = keyPair.getPublicKey().toString().substr(8);
-        console.log("Pubkey: ", pubkey)
-        const msg = Buffer.from(pubkey!);
+        const msg = Buffer.from(data);
         const { signature } = keyPair.sign(msg);
         const hexSignature = Buffer.from(signature).toString('hex');
+
         resolve(hexSignature);
-      }
-      catch (e) {
+      } catch (e) {
         reject(e);
       }
     });
-  }, [nearLoginUser, signedIn, pubKey]);
+  }, [nearLoginUser]);
 
   return useMemo(() => ({
     ...nearLoginUser,
@@ -320,5 +314,5 @@ export function useNearLoginUser(): NearLoginUserWrapper{
     onSignedIn,
     signOut,
     sign
-  }), [nearLoginUser, signedIn, pubKey])
+  }), [nearLoginUser, signedIn, pubKey, onSignedIn, sign, signOut]);
 }

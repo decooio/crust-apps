@@ -1,15 +1,15 @@
 // Copyright 2017-2021 @polkadot/app-files authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useCallback, useContext, useState, useEffect } from 'react';
+import * as nearAPI from 'near-api-js';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
-import { WrapLoginUser, NearLoginUserWrapper } from '@polkadot/app-files/hooks';
+import { NearLoginUserWrapper, WrapLoginUser } from '@polkadot/app-files/hooks';
 import { externalLogos } from '@polkadot/apps-config';
 import { InputAddress, StatusContext } from '@polkadot/react-components';
 import { useAccounts } from '@polkadot/react-hooks';
 
-import * as nearAPI from "near-api-js";
 import { getNearConfig } from './near/config';
 import { Button } from './btns';
 import { useTranslation } from './translate';
@@ -20,7 +20,7 @@ export interface Props {
   nearUser: NearLoginUserWrapper
 }
 
-function Login ({ className, user, nearUser }: Props) {
+function Login ({ className, nearUser, user }: Props) {
   const { t } = useTranslation();
   const [showCrust, setShowCrust] = useState(false);
   const _onToggleWalletCrust = useCallback(() => setShowCrust(!showCrust), [showCrust]);
@@ -72,28 +72,28 @@ function Login ({ className, user, nearUser }: Props) {
     }
   }, [user, queueAction, t]);
 
-  const _onClickNear = useCallback(async() => {
+  const _onClickNear = useCallback(async () => {
     console.log('_onClickNear', nearUser);
     const nearConfig = getNearConfig();
-    nearUser.walletAccount?.requestSignIn(
+
+    await nearUser.walletAccount?.requestSignIn(
       nearConfig.contractName,
       'Crust Files'
     );
-  }, [nearUser, queueAction, t]);
+  }, [nearUser]);
 
   useEffect(() => {
-    (async function() {
-      console.log('Login.tsx, useEffect...');
-
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    (async function () {
       const nearConfig = getNearConfig();
       const near = await nearAPI.connect(Object.assign({ deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() } }, nearConfig));
       const walletAccount = new nearAPI.WalletAccount(near, null);
+
       if (walletAccount.isSignedIn()) {
         nearUser.onSignedIn(walletAccount);
       }
     })();
   }, [nearUser]);
-
 
   return (
     <div className={className}>
