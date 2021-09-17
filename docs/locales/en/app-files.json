@@ -1,6 +1,7 @@
 {
   "Action": "Action",
   "Cancel": "Cancel",
+  "Connet Near": "Connet Near",
   "Continue with my account": "Continue with my account",
   "Copy Download Link": "Copy Download Link",
   "Copy File CID": "Copy File CID",
@@ -30,6 +31,7 @@
   "Need installed MetaMask": "Need installed MetaMask",
   "Network Error,Please try to switch a Gateway.": "Network Error,Please try to switch a Gateway.",
   "No files": "No files",
+  "Not Create NearConnetion": "Not Create NearConnetion",
   "Note: The file list is cached locally, switching browsers or devices will not keep displaying the original browser information.": "Note: The file list is cached locally, switching browsers or devices will not keep displaying the original browser information.",
   "Open File": "Open File",
   "Paid service with smart contract on Polygon and Ethereum": "Paid service with smart contract on Polygon and Ethereum",

@@ -289,7 +289,6 @@
   "File Settlement": "订单清算",
   "File Size": "文件大小",
   "File streaming and wallet authentication will be processed by the chosen gateway.": "您所选择的网关将负责验证钱包和上传文件。",
-  "Files": "文件",
   "Filter available candidates based on name, address or short account index.": "根据姓名、地址或短帐户索引筛选可用的候选人。",
   "Folder": "文件夹",
   "For approvals outstanding approvers will be shown, for hashes that should be cancelled the first approver is required.": "对于审批，将显示未完成的审批人，对于应取消的哈希，需要第一个审批人。",
