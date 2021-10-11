@@ -138,7 +138,7 @@ function createWebpack (context, mode = 'production') {
       ]
     },
     node: {
-      __dirname: false,
+      __dirname: true,
       __filename: false
     },
     optimization: {
@@ -217,7 +217,8 @@ function createWebpack (context, mode = 'production') {
         https: require.resolve("https-browserify"),
         http: require.resolve("stream-http"),
         os: false,
-        assert: false
+        assert: false,
+        fs: false
       }
     }
   };

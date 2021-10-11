@@ -13,6 +13,16 @@ import { useAccounts } from '@polkadot/react-hooks';
 import { Button } from './btns';
 import { useTranslation } from './translate';
 
+import {
+  ExtensionProvider, Address,
+  Transaction, RawTransactionType, Balance, TransactionPayload,
+  GasPrice,
+  ChainID,
+  TransactionVersion,
+  GasLimit,
+  UserPublicKey
+} from "@elrondnetwork/erdjs";
+
 // eslint-disable-next-line
 const fcl = require('@onflow/fcl');
 
@@ -141,6 +151,68 @@ function Login ({ className, user }: Props) {
     });
   }, [user, queueAction, t]);
 
+  const _onClickElron = useCallback(() => {
+
+    const provider = ExtensionProvider.getInstance();
+    provider
+      .init()
+      .then(async (initialised) => {
+        if (!initialised) {
+          queueAction({
+            status: 'error',
+            message: t('Something went wrong trying to redirect to wallet login..'),
+            action: t('Connect Elrond')
+          });
+          return;
+        }
+
+        await provider.login({
+          callbackUrl: encodeURIComponent(
+            `${window.location.origin}/#/files`
+          )
+        });
+
+        console.log('Elrond login. ', provider.account);
+
+        // Construct Transaction
+        const address = provider.account.address;
+        const rawTransaction: RawTransactionType = {
+          receiver: Address.Zero().hex(),
+          data: address,
+          value: "0.1"
+        };
+        const transaction = new Transaction({
+          value: Balance.egld(rawTransaction.value),
+          data: new TransactionPayload(rawTransaction.data),
+          receiver: new Address(rawTransaction.receiver),
+          gasLimit: new GasLimit(50000),
+          gasPrice: new GasPrice(1000000000),
+          chainID: new ChainID('D'),
+          version: new TransactionVersion(1),
+        });
+
+        // Sign Transaction
+        const transMessage = transaction.serializeForSigning(new Address(address));
+        const signedTrans = await provider.signTransaction(transaction);
+        console.log('signed transaction:', signedTrans);
+
+        // Get Signature from signed transaction, and verify
+        const publicKey = new UserPublicKey(
+          Address.fromString(address).pubkey(),
+        );
+        const valid = publicKey.verify(
+          transMessage,
+          Buffer.from(signedTrans.getSignature().hex(), "hex"),
+        );
+        console.log("Valid", valid);
+      })
+      .catch((err) => {
+        console.warn(err);
+      });
+
+
+  }, [user, queueAction, t]);
+
   return (
     <div className={className}>
       <div className='loginPanel'>
@@ -211,6 +283,12 @@ function Login ({ className, user }: Props) {
                 <img
                   className='walletIcon'
                   onClick={_onClickSolana}
+                  src={externalLogos.walletSolana as string}
+                />
+
+                <img
+                  className='walletIcon'
+                  onClick={_onClickElron}
                   src={externalLogos.walletSolana as string}
                 />
               </div>
