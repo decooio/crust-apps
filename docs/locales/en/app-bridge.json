@@ -15,7 +15,7 @@
   "The account you will sign tx.": "The account you will sign tx.",
   "The selected account is used to receive tokens": "The selected account is used to receive tokens",
   "The transaction fee is ": "The transaction fee is ",
-  "This function is an internal test stage, the assets will not be lost, but there may be a delay in the arrival of the account.": "This function is an internal test stage, the assets will not be lost, but there may be a delay in the arrival of the account.",
+  "This function is an internal test stage, the assets will not be lost, but there may be a delay (max to 48 hours) in the arrival of the account.": "This function is an internal test stage, the assets will not be lost, but there may be a delay (max to 48 hours) in the arrival of the account.",
   "To Crust": "To Crust",
   "To Ethereum": "To Ethereum",
   "Transfer": "Transfer",

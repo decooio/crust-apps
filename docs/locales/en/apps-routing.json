@@ -1,6 +1,7 @@
 {
   "Files": "Files",
-  "Pin": "Pin",
+  "Pins": "Pins",
+  "SwitchSwap": "SwitchSwap",
   "explore": "Explore",
   "files": "Files",
   "market": "Storage Market",
@@ -35,6 +36,7 @@
   "nav.staking": "Staking",
   "nav.storage": "Chain state",
   "nav.sudo": "Sudo",
+  "nav.sworkerVersion": "sWorker Version",
   "nav.tech-comm": "Tech. comm.",
   "nav.transfer": "Transfer",
   "nav.treasury": "Treasury",
